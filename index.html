@@ -1,0 +1,3105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script>console.time('All');</script>
+</head>
+<body>
+<style>
+    body {
+        position: absolute;
+        font-size: 14px;
+        user-select: none;
+        min-width: 100vw;
+        min-height: 100vh;
+        /*background: moccasin;*/
+        background: lemonchiffon;
+    }
+
+    .row {
+        display: flex;
+        justify-content: center;
+        margin: 15px;
+        position: relative;
+    }
+    .row:first-of-type:before {
+        content: none;
+    }
+    .row:before {
+        content: '';
+        display: block;
+        height: 15px;
+        width: 2px;
+        background: black;
+        flex: 100%;
+        position: absolute;
+        top: -15px;
+    }
+
+
+    .wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        margin-top: 15px;
+    }
+    .wrapper:first-child > .content {
+        margin-left: 0;
+    }
+    .wrapper:last-child > .content {
+        margin-right: 0;
+    }
+    .wrapper:before {
+        content: '';
+        display: block;
+        height: 2px;
+        width: 100%;
+        background: black;
+        position: absolute;
+        top: -15px;
+    }
+    .wrapper:first-child:before {
+        width: 50%;
+        left: 50%;
+    }
+    .wrapper:last-child:before {
+        width: 50%;
+        left: 0;
+    }
+    .wrapper:first-child:last-child:before {
+        content: none;
+    }
+
+
+
+    .content {
+        display: flex;
+        box-shadow: 0 2px 4px -2px black;
+        margin: 0 15px;
+        border-radius: 20px;
+        background: white;
+    }
+    .content:before {
+        content: '';
+        display: block;
+        height: 15px;
+        width: 2px;
+        margin: 0 auto;
+        position: absolute;
+        top: -15px;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: black;
+    }
+    .row:first-of-type > .wrapper > .content:before {
+        content: none;
+    }
+
+
+
+    .item {
+        position: relative;
+    }
+    .item[data-type="object"]:before,
+    .item[data-type="object_prototype"]:before {
+        content: 'o:';
+    }
+    .item[data-type="function"]:before,
+    .item[data-type="function_prototype"]:before {
+        content: 'f:';
+    }
+    .item[data-type]:before,
+    .item[data-type]:before {
+        display: inline-block;
+        position: absolute;
+        top: 10px;
+        font-size: 12px;
+        left: 5px;
+        color: grey;
+        font-family: cursive;
+    }
+
+    .item__title {
+        background: #7ac0da;
+        padding: 10px 10px 10px 17px;
+        text-align: center;
+        display: block;
+        text-decoration: none;
+        cursor: pointer;
+        border: 1px solid black;
+    }
+    .item:first-child .item__title {
+        border-top-left-radius: 20px;
+        border-bottom-left-radius: 20px;
+    }
+    .item:last-child .item__title {
+        border-top-right-radius: 20px;
+        border-bottom-right-radius: 20px;
+        margin-left: -1px;
+    }
+    .item:first-child:last-child .item__title {
+        border-radius: 20px;
+    }
+    .item[data-type="object"] .item__title,
+    .item[data-type="object_prototype"] .item__title {
+        /*background-color: #cce5ff;
+        border-color: #b8daff;*/
+        background-color: #76eaff;
+        border-color: #96b3d1;
+        color: #004085;
+    }
+    .item[data-type="function"] .item__title,
+    .item[data-type="function_prototype"] .item__title {
+        color: #155724;
+        /*background-color: #d4edda;
+        border-color: #c3e6cb;*/
+        background-color: #9bf4b0;
+        border-color: #91d8a1;
+    }
+    .item[data-type="endPoint"] .item__title {
+        color: #0c5460;
+        background-color: #2fdfff;
+        border-color: #00d8ff;
+        padding: 10px;
+    }
+
+    .item__properties {
+        display: flex;
+        flex-direction: column;
+        padding: 5px;
+        position: relative;
+    }
+    .item__properties.item__properties_hide {
+        display: none;
+        padding: 0;
+    }
+    .item:first-child:last-child .item__properties:before {
+        content: none;
+    }
+    .item:last-child .item__properties:before {
+        content: '';
+        display: block;
+        height: 96%;
+        width: 1px;
+        position: absolute;
+        top: 2%;
+        left: 1px;
+        background: linear-gradient(to top, rgba(255,255,255,1) 0%, rgba(112,112,112,1) 35%, rgba(136,136,136,1) 50%, rgba(112,112,112,1) 65%, rgba(255,255,255,1) 100%);
+    }
+    .item[data-type="endPoint"] .item__properties {
+        text-align: center;
+        color: #0c5460;
+        background-color: #2fdfff;
+        border-color: #bee5eb;
+        border-radius: 20px;
+        padding: 10px;
+    }
+
+    .item__properties a {
+        padding: 5px 5px 5px 15px;
+    }
+    .item__properties a:hover {
+        box-shadow: 0 7px 8px -10px #0000008c, 0 -7px 8px -10px #000000bf;
+    }
+    .item__properties a[data-type="link"]:before {
+        content: '#:';
+        display: inline-block;
+        left: 6px;
+        position: absolute;
+        color: grey;
+    }
+    .item[data-type="endPoint"] .item__properties a {
+        color: #0c5460;
+        text-decoration: none;
+        padding: 1px 8px;
+        margin: 5px 0;
+        box-shadow: 0 4px 5px -5px #0000008c;
+        background-color: #76eaff;
+        border-radius: 7px;
+        white-space: nowrap;
+    }
+    .item[data-type="endPoint"] .item__properties a:hover {
+        box-shadow: 0 5px 5px -5px #0000008c;
+    }
+
+
+
+    #toggleProperties {
+        position: fixed;
+        top: 5px;
+        left: 5px;
+        z-index: 1;
+    }
+</style>
+
+<button id="toggleProperties">Show All Properties</button>
+<script>
+    console.time('Script');
+
+    const templateObject = {
+        name: 'Math',
+        type: 'object',
+        properties: {
+
+        },
+    };
+    const templateFunction = {
+        name: 'Math',
+        type: 'function',
+        properties: {
+
+        },
+    };
+    const templatePrototype = {
+        wrapper: null,
+        name: 'Object.prototype',
+        type: 'object_prototype',
+        properties: {
+
+        },
+        children: {
+
+        }
+    };
+
+
+
+    /* Node.prototype -> Element.prototype influence */
+    const input = {
+        name: '<input>',
+        type: 'endPoint',
+    };
+
+    const _HTMLInputElementPrototype = {
+        name: 'HTMLInputElement.prototype',
+        type: 'object_prototype',
+        properties: {
+            'accept': {},
+            'alt': {},
+            'autocomplete': {},
+            'defaultChecked': {},
+            'checked': {},
+            'dirName': {},
+            'disabled': {},
+            'form': {},
+            'files': {},
+            'formAction': {},
+            'formEnctype': {},
+            'formMethod': {},
+            'formNoValidate': {},
+            'formTarget': {},
+            'height': {},
+            'indeterminate': {},
+            'list': {},
+            'max': {},
+            'maxLength': {},
+            'min': {},
+            'minLength': {},
+            'multiple': {},
+            'name': {},
+            'pattern': {},
+            'placeholder': {},
+            'readOnly': {},
+            'required': {},
+            'size': {},
+            'src': {},
+            'step': {},
+            'type': {},
+            'defaultValue': {},
+            'value': {},
+            'valueAsDate': {},
+            'valueAsNumber': {},
+            'width': {},
+            'willValidate': {},
+            'validity': {},
+            'validationMessage': {},
+            'labels': {},
+            'selectionStart': {},
+            'selectionEnd': {},
+            'selectionDirection': {},
+            'align': {},
+            'useMap': {},
+            'webkitdirectory': {},
+            'incremental': {},
+            'stepUp()': {},
+            'stepDown()': {},
+            'checkValidity()': {},
+            'reportValidity()': {},
+            'setCustomValidity()': {},
+            'select()': {},
+            'setRangeText()': {},
+            'setSelectionRange()': {},
+            'webkitEntries': {},
+            'constructor()': {},
+        },
+        children: {
+            input
+        }
+    };
+
+    const form = {
+        name: '<form>',
+        type: 'endPoint',
+    };
+
+    const _HTMLFormElementPrototype = {
+        name: 'HTMLFormElement.prototype',
+        type: 'object_prototype',
+        properties: {
+            'acceptCharset': {},
+            'action': {},
+            'autocomplete': {},
+            'enctype': {},
+            'encoding': {},
+            'method': {},
+            'name': {},
+            'noValidate': {},
+            'target': {},
+            'elements': {},
+            'length': {},
+            'submit()': {},
+            'requestSubmit()': {},
+            'reset()': {},
+            'checkValidity()': {},
+            'reportValidity()': {},
+            'constructor()': {},
+        },
+        children: {
+            form
+        }
+    };
+
+    const div = {
+        name: '<div>',
+        type: 'endPoint',
+    };
+
+    const _HTMLDivElementPrototype = {
+        name: 'HTMLDivElement.prototype',
+        type: 'object_prototype',
+        properties: {
+            'align': {},
+            'constructor()': {},
+        },
+        children: {
+            div
+        }
+    };
+
+    const body = {
+        name: '<body>',
+        type: 'endPoint',
+    };
+
+    const _HTMLBodyElementPrototype = {
+        name: 'HTMLBodyElement.prototype',
+        type: 'object_prototype',
+        properties: {
+            'text': {},
+            'link': {},
+            'vLink': {},
+            'aLink': {},
+            'bgColor': {},
+            'background': {},
+            'onblur': {},
+            'onerror': {},
+            'onfocus': {},
+            'onload': {},
+            'onresize': {},
+            'onscroll': {},
+            'onafterprint': {},
+            'onbeforeprint': {},
+            'onbeforeunload': {},
+            'onhashchange': {},
+            'onlanguagechange': {},
+            'onmessage': {},
+            'onmessageerror': {},
+            'onoffline': {},
+            'ononline': {},
+            'onpagehide': {},
+            'onpageshow': {},
+            'onpopstate': {},
+            'onrejectionhandled': {},
+            'onstorage': {},
+            'onunhandledrejection': {},
+            'onunload': {},
+            'constructor()': {},
+        },
+        children: {
+            body
+        }
+    };
+
+    const head = {
+        name: '<head>',
+        type: 'endPoint',
+    };
+
+    const _HTMLHeadElementPrototype = {
+        name: 'HTMLHeadElement.prototype',
+        type: 'object_prototype',
+        children: {
+            head
+        }
+    };
+
+    const html = {
+        name: '<html>',
+        type: 'endPoint',
+    };
+
+    const _HTMLHtmlElementPrototype = {
+        name: 'HTMLHtmlElement.prototype',
+        type: 'object_prototype',
+        properties: {
+            'version': {},
+            'constructor()': {},
+        },
+        children: {
+            html
+        }
+    };
+
+    /* EventTarget.prototype -> Node.prototype influence */
+    const _HTMLElementPrototype = {
+        name: 'HTMLElement.prototype',
+        type: 'object_prototype',
+        properties: {
+            'title': {},
+            'lang': {},
+            'translate': {},
+            'dir': {},
+            'hidden': {},
+            'accessKey': {},
+            'draggable': {},
+            'spellcheck': {},
+            'autocapitalize': {},
+            'contentEditable': {},
+            'isContentEditable': {},
+            'inputMode': {},
+            'offsetParent': {},
+            'offsetTop': {},
+            'offsetLeft': {},
+            'offsetWidth': {},
+            'offsetHeight': {},
+            'style': {},
+            'innerText': {},
+            'outerText': {},
+            'oncopy': {},
+            'oncut': {},
+            'onpaste': {},
+            'onabort': {},
+            'onblur': {},
+            'oncancel': {},
+            'oncanplay': {},
+            'oncanplaythrough': {},
+            'onchange': {},
+            'onclick': {},
+            'onclose': {},
+            'oncontextmenu': {},
+            'oncuechange': {},
+            'ondblclick': {},
+            'ondrag': {},
+            'ondragend': {},
+            'ondragenter': {},
+            'ondragleave': {},
+            'ondragover': {},
+            'ondragstart': {},
+            'ondrop': {},
+            'ondurationchange': {},
+            'onemptied': {},
+            'onended': {},
+            'onerror': {},
+            'onfocus': {},
+            'onformdata': {},
+            'oninput': {},
+            'oninvalid': {},
+            'onkeydown': {},
+            'onkeypress': {},
+            'onkeyup': {},
+            'onload': {},
+            'onloadeddata': {},
+            'onloadedmetadata': {},
+            'onloadstart': {},
+            'onmousedown': {},
+            'onmouseenter': {},
+            'onmouseleave': {},
+            'onmousemove': {},
+            'onmouseout': {},
+            'onmouseover': {},
+            'onmouseup': {},
+            'onmousewheel': {},
+            'onpause': {},
+            'onplay': {},
+            'onplaying': {},
+            'onprogress': {},
+            'onratechange': {},
+            'onreset': {},
+            'onresize': {},
+            'onscroll': {},
+            'onseeked': {},
+            'onseeking': {},
+            'onselect': {},
+            'onstalled': {},
+            'onsubmit': {},
+            'onsuspend': {},
+            'ontimeupdate': {},
+            'ontoggle': {},
+            'onvolumechange': {},
+            'onwaiting': {},
+            'onwheel': {},
+            'onauxclick': {},
+            'ongotpointercapture': {},
+            'onlostpointercapture': {},
+            'onpointerdown': {},
+            'onpointermove': {},
+            'onpointerup': {},
+            'onpointercancel': {},
+            'onpointerover': {},
+            'onpointerout': {},
+            'onpointerenter': {},
+            'onpointerleave': {},
+            'onselectstart': {},
+            'onselectionchange': {},
+            'onanimationend': {},
+            'onanimationiteration': {},
+            'onanimationstart': {},
+            'ontransitionend': {},
+            'dataset': {},
+            'nonce': {},
+            'autofocus': {},
+            'tabIndex': {},
+            'click()': {},
+            'attachInternals()': {},
+            'focus()': {},
+            'blur()': {},
+            'enterKeyHint': {},
+            'onpointerrawupdate': {},
+            'constructor()': {},
+        },
+        children: {
+            _HTMLHtmlElementPrototype,
+            _HTMLHeadElementPrototype,
+            _HTMLBodyElementPrototype,
+            _HTMLDivElementPrototype,
+            _HTMLInputElementPrototype,
+            _HTMLFormElementPrototype
+
+        }
+    };
+
+    const _ElementPrototype = {
+        name: 'Element.prototype',
+        type: 'object_prototype',
+        properties: {
+            'namespaceURI': {},
+            'prefix': {},
+            'localName': {},
+            'tagName': {},
+            'id': {},
+            'className': {},
+            'classList': {},
+            'slot': {},
+            'attributes': {},
+            'shadowRoot': {},
+            'part': {},
+            'assignedSlot': {},
+            'innerHTML': {},
+            'outerHTML': {},
+            'scrollTop': {},
+            'scrollLeft': {},
+            'scrollWidth': {},
+            'scrollHeight': {},
+            'clientTop': {},
+            'clientLeft': {},
+            'clientWidth': {},
+            'clientHeight': {},
+            'attributeStyleMap': {},
+            'onbeforecopy': {},
+            'onbeforecut': {},
+            'onbeforepaste': {},
+            'onsearch': {},
+            'elementTiming': {},
+            'previousElementSibling': {},
+            'nextElementSibling': {},
+            'children': {},
+            'firstElementChild': {},
+            'lastElementChild': {},
+            'childElementCount': {},
+            'onfullscreenchange': {},
+            'onfullscreenerror': {},
+            'onwebkitfullscreenchange': {},
+            'onwebkitfullscreenerror': {},
+            'hasAttributes()': {},
+            'getAttributeNames()': {},
+            'getAttribute()': {},
+            'getAttributeNS()': {},
+            'setAttribute()': {},
+            'setAttributeNS()': {},
+            'removeAttribute()': {},
+            'removeAttributeNS()': {},
+            'toggleAttribute()': {},
+            'hasAttribute()': {},
+            'hasAttributeNS()': {},
+            'getAttributeNode()': {},
+            'getAttributeNodeNS()': {},
+            'setAttributeNode()': {},
+            'setAttributeNodeNS()': {},
+            'removeAttributeNode()': {},
+            'attachShadow()': {},
+            'closest()': {},
+            'matches()': {},
+            'webkitMatchesSelector()': {},
+            'getElementsByTagName()': {},
+            'getElementsByTagNameNS()': {},
+            'getElementsByClassName()': {},
+            'insertAdjacentElement()': {},
+            'insertAdjacentText()': {},
+            'setPointerCapture()': {},
+            'releasePointerCapture()': {},
+            'hasPointerCapture()': {},
+            'insertAdjacentHTML()': {},
+            'requestPointerLock()': {},
+            'getClientRects()': {},
+            'getBoundingClientRect()': {},
+            'scrollIntoView()': {},
+            'scroll()': {},
+            'scrollTo()': {},
+            'scrollBy()': {},
+            'scrollIntoViewIfNeeded()': {},
+            'animate()': {},
+            'computedStyleMap()': {},
+            'before()': {},
+            'after()': {},
+            'replaceWith()': {},
+            'remove()': {},
+            'prepend()': {},
+            'append()': {},
+            'querySelector()': {},
+            'querySelectorAll()': {},
+            'requestFullscreen()': {},
+            'webkitRequestFullScreen()': {},
+            'webkitRequestFullscreen()': {},
+            'constructor()': {},
+        },
+        children: {
+            _HTMLElementPrototype,
+
+        }
+    };
+
+    const _document = {
+        name: 'document',
+        type: 'object',
+        properties: {
+            'location': {},
+        },
+    };
+
+    const _HTMLDocumentPrototype = {
+        name: 'HTMLDocument.prototype',
+        type: 'object_prototype',
+        children: {
+            _document
+        }
+    };
+
+    const _DocumentPrototype = {
+        name: 'Document.prototype',
+        type: 'object_prototype',
+        properties: {
+            'implementation': {},
+            'URL': {},
+            'documentURI': {},
+            'compatMode': {},
+            'characterSet': {},
+            'charset': {},
+            'inputEncoding': {},
+            'contentType': {},
+            'doctype': {},
+            'documentElement': {},
+            'xmlEncoding': {},
+            'xmlVersion': {},
+            'xmlStandalone': {},
+            'domain': {},
+            'referrer': {},
+            'cookie': {},
+            'lastModified': {},
+            'readyState': {},
+            'title': {},
+            'dir': {},
+            'body': {},
+            'head': {},
+            'images': {},
+            'embeds': {},
+            'plugins': {},
+            'links': {},
+            'forms': {},
+            'scripts': {},
+            'currentScript': {},
+            'defaultView': {},
+            'designMode': {},
+            'onreadystatechange': {},
+            'anchors': {},
+            'applets': {},
+            'fgColor': {},
+            'linkColor': {},
+            'vlinkColor': {},
+            'alinkColor': {},
+            'bgColor': {},
+            'all': {},
+            'scrollingElement': {},
+            'onpointerlockchange': {},
+            'onpointerlockerror': {},
+            'hidden': {},
+            'visibilityState': {},
+            'wasDiscarded': {},
+            'webkitVisibilityState': {},
+            'webkitHidden': {},
+            'onbeforecopy': {},
+            'onbeforecut': {},
+            'onbeforepaste': {},
+            'onfreeze': {},
+            'onresume': {},
+            'onsearch': {},
+            'onsecuritypolicyviolation': {},
+            'onvisibilitychange': {},
+            'fonts': {},
+            'oncopy': {},
+            'oncut': {},
+            'onpaste': {},
+            'activeElement': {},
+            'styleSheets': {},
+            'pointerLockElement': {},
+            'fullscreenElement': {},
+            'adoptedStyleSheets': {},
+            'onabort': {},
+            'onblur': {},
+            'oncancel': {},
+            'oncanplay': {},
+            'oncanplaythrough': {},
+            'onchange': {},
+            'onclick': {},
+            'onclose': {},
+            'oncontextmenu': {},
+            'oncuechange': {},
+            'ondblclick': {},
+            'ondrag': {},
+            'ondragend': {},
+            'ondragenter': {},
+            'ondragleave': {},
+            'ondragover': {},
+            'ondragstart': {},
+            'ondrop': {},
+            'ondurationchange': {},
+            'onemptied': {},
+            'onended': {},
+            'onerror': {},
+            'onfocus': {},
+            'onformdata': {},
+            'oninput': {},
+            'oninvalid': {},
+            'onkeydown': {},
+            'onkeypress': {},
+            'onkeyup': {},
+            'onload': {},
+            'onloadeddata': {},
+            'onloadedmetadata': {},
+            'onloadstart': {},
+            'onmousedown': {},
+            'onmouseenter': {},
+            'onmouseleave': {},
+            'onmousemove': {},
+            'onmouseout': {},
+            'onmouseover': {},
+            'onmouseup': {},
+            'onmousewheel': {},
+            'onpause': {},
+            'onplay': {},
+            'onplaying': {},
+            'onprogress': {},
+            'onratechange': {},
+            'onreset': {},
+            'onresize': {},
+            'onscroll': {},
+            'onseeked': {},
+            'onseeking': {},
+            'onselect': {},
+            'onstalled': {},
+            'onsubmit': {},
+            'onsuspend': {},
+            'ontimeupdate': {},
+            'ontoggle': {},
+            'onvolumechange': {},
+            'onwaiting': {},
+            'onwheel': {},
+            'onauxclick': {},
+            'ongotpointercapture': {},
+            'onlostpointercapture': {},
+            'onpointerdown': {},
+            'onpointermove': {},
+            'onpointerup': {},
+            'onpointercancel': {},
+            'onpointerover': {},
+            'onpointerout': {},
+            'onpointerenter': {},
+            'onpointerleave': {},
+            'onselectstart': {},
+            'onselectionchange': {},
+            'onanimationend': {},
+            'onanimationiteration': {},
+            'onanimationstart': {},
+            'ontransitionend': {},
+            'children': {},
+            'firstElementChild': {},
+            'lastElementChild': {},
+            'childElementCount': {},
+            'fullscreenEnabled': {},
+            'fullscreen': {},
+            'onfullscreenchange': {},
+            'onfullscreenerror': {},
+            'webkitIsFullScreen': {},
+            'webkitCurrentFullScreenElement': {},
+            'webkitFullscreenEnabled': {},
+            'webkitFullscreenElement': {},
+            'onwebkitfullscreenchange': {},
+            'onwebkitfullscreenerror': {},
+            'rootElement': {},
+            'getElementsByTagName()': {},
+            'getElementsByTagNameNS()': {},
+            'getElementsByClassName()': {},
+            'createDocumentFragment()': {},
+            'createTextNode()': {},
+            'createCDATASection()': {},
+            'createComment()': {},
+            'createProcessingInstruction()': {},
+            'importNode()': {},
+            'adoptNode()': {},
+            'createAttribute()': {},
+            'createAttributeNS()': {},
+            'createEvent()': {},
+            'createRange()': {},
+            'createNodeIterator()': {},
+            'createTreeWalker()': {},
+            'getElementsByName()': {},
+            'open()': {},
+            'close()': {},
+            'write()': {},
+            'writeln()': {},
+            'hasFocus()': {},
+            'execCommand()': {},
+            'queryCommandEnabled()': {},
+            'queryCommandIndeterm()': {},
+            'queryCommandState()': {},
+            'queryCommandSupported()': {},
+            'queryCommandValue()': {},
+            'clear()': {},
+            'captureEvents()': {},
+            'releaseEvents()': {},
+            'exitPointerLock()': {},
+            'createElement()': {},
+            'createElementNS()': {},
+            'caretRangeFromPoint()': {},
+            'getSelection()': {},
+            'elementFromPoint()': {},
+            'elementsFromPoint()': {},
+            'getElementById()': {},
+            'prepend()': {},
+            'append()': {},
+            'querySelector()': {},
+            'querySelectorAll()': {},
+            'exitFullscreen()': {},
+            'webkitCancelFullScreen()': {},
+            'webkitExitFullscreen()': {},
+            'createExpression()': {},
+            'createNSResolver()': {},
+            'evaluate()': {},
+            'constructor()': {},
+            'featurePolicy': {},
+            'onpointerrawupdate': {},
+            'pictureInPictureElement': {},
+            'pictureInPictureEnabled': {},
+            'exitPictureInPicture()': {},
+        },
+        children: {
+            _HTMLDocumentPrototype,
+
+        }
+    };
+
+    /* Object.prototype -> EventTarget.prototype influence */
+    const _Node = {
+        name: 'Node',
+        type: 'function',
+        properties: {
+            'length': {},
+            'name': {},
+            'arguments': {},
+            'caller': {},
+            'prototype': {},
+            'ELEMENT_NODE': {},
+            'ATTRIBUTE_NODE': {},
+            'TEXT_NODE': {},
+            'CDATA_SECTION_NODE': {},
+            'ENTITY_REFERENCE_NODE': {},
+            'ENTITY_NODE': {},
+            'PROCESSING_INSTRUCTION_NODE': {},
+            'COMMENT_NODE': {},
+            'DOCUMENT_NODE': {},
+            'DOCUMENT_TYPE_NODE': {},
+            'DOCUMENT_FRAGMENT_NODE': {},
+            'NOTATION_NODE': {},
+            'DOCUMENT_POSITION_DISCONNECTED': {},
+            'DOCUMENT_POSITION_PRECEDING': {},
+            'DOCUMENT_POSITION_FOLLOWING': {},
+            'DOCUMENT_POSITION_CONTAINS': {},
+            'DOCUMENT_POSITION_CONTAINED_BY': {},
+            'DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC': {},
+        },
+    };
+    const _NodePrototype = {
+        wrapper: _Node,
+        name: 'Node.prototype',
+        type: 'object_prototype',
+        properties: {
+            'ELEMENT_NODE': {},
+            'ATTRIBUTE_NODE': {},
+            'TEXT_NODE': {},
+            'CDATA_SECTION_NODE': {},
+            'ENTITY_REFERENCE_NODE': {},
+            'ENTITY_NODE': {},
+            'PROCESSING_INSTRUCTION_NODE': {},
+            'COMMENT_NODE': {},
+            'DOCUMENT_NODE': {},
+            'DOCUMENT_TYPE_NODE': {},
+            'DOCUMENT_FRAGMENT_NODE': {},
+            'NOTATION_NODE': {},
+            'DOCUMENT_POSITION_DISCONNECTED': {},
+            'DOCUMENT_POSITION_PRECEDING': {},
+            'DOCUMENT_POSITION_FOLLOWING': {},
+            'DOCUMENT_POSITION_CONTAINS': {},
+            'DOCUMENT_POSITION_CONTAINED_BY': {},
+            'DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC': {},
+            'nodeType': {},
+            'nodeName': {},
+            'baseURI': {},
+            'isConnected': {},
+            'ownerDocument': {},
+            'parentNode': {},
+            'parentElement': {},
+            'childNodes': {},
+            'firstChild': {},
+            'lastChild': {},
+            'previousSibling': {},
+            'nextSibling': {},
+            'nodeValue': {},
+            'textContent': {},
+            'hasChildNodes()': {},
+            'getRootNode()': {},
+            'normalize()': {},
+            'cloneNode()': {},
+            'isEqualNode()': {},
+            'isSameNode()': {},
+            'compareDocumentPosition()': {},
+            'contains()': {},
+            'lookupPrefix()': {},
+            'lookupNamespaceURI()': {},
+            'isDefaultNamespace()': {},
+            'insertBefore()': {},
+            'appendChild()': {},
+            'replaceChild()': {},
+            'removeChild()': {},
+            'constructor()': {},
+        },
+        children: {
+            _DocumentPrototype,
+            _ElementPrototype,
+
+        }
+    };
+
+    const newXMLHttpRequest = {
+        name: 'new XMLHttpRequest()',
+        type: 'endPoint',
+    };
+
+    const _XMLHttpRequest = {
+        name: 'XMLHttpRequest',
+        type: 'function',
+        properties: {
+            'length': {},
+            'name': {},
+            'arguments': {},
+            'caller': {},
+            'prototype': {},
+            'UNSENT': {},
+            'OPENED': {},
+            'HEADERS_RECEIVED': {},
+            'LOADING': {},
+            'DONE': {},
+        },
+    };
+    const _XMLHttpRequestPrototype = {
+        wrapper: _XMLHttpRequest,
+        name: 'XMLHttpRequest.prototype',
+        type: 'object_prototype',
+        properties: {
+            'UNSENT': {},
+            'OPENED': {},
+            'HEADERS_RECEIVED': {},
+            'LOADING': {},
+            'DONE': {},
+            'onreadystatechange': {},
+            'readyState': {},
+            'timeout': {},
+            'withCredentials': {},
+            'upload': {},
+            'responseURL': {},
+            'status': {},
+            'statusText': {},
+            'responseType': {},
+            'response': {},
+            'responseText': {},
+            'responseXML': {},
+            'open()': {},
+            'setRequestHeader()': {},
+            'send()': {},
+            'abort()': {},
+            'getResponseHeader()': {},
+            'getAllResponseHeaders()': {},
+            'overrideMimeType()': {},
+            'constructor()': {},
+        },
+        children: {
+            newXMLHttpRequest
+        }
+    };
+
+    const _XMLHttpRequestEventTargetPrototype = {
+        name: 'XMLHttpRequestEventTarget.prototype',
+        type: 'object_prototype',
+        properties: {
+            'onloadstart': {},
+            'onprogress': {},
+            'onabort': {},
+            'onerror': {},
+            'onload': {},
+            'ontimeout': {},
+            'onloadend': {},
+            'constructor()': {},
+        },
+        children: {
+            _XMLHttpRequestPrototype,
+
+        }
+    };
+
+    const _window = {
+        name: 'window',
+        type: 'object',
+        properties: {
+            'Object()': {
+                linkTo: 'Object',
+            },
+            'Function()': {
+                linkTo: 'Function',
+            },
+            'Array()': {
+                linkTo: 'Array',
+            },
+            'Number()': {
+                linkTo: 'Number',
+            },
+            'parseFloat()': {},
+            'parseInt()': {},
+            'Infinity': {},
+            'NaN': {},
+            'undefined': {},
+            'Boolean()': {
+                linkTo: 'Boolean',
+            },
+            'String()': {
+                linkTo: 'String',
+            },
+            'Symbol()': {
+                linkTo: 'Symbol',
+            },
+            'Date()': {
+                linkTo: 'Date',
+            },
+            'Promise()': {
+                linkTo: 'Promise',
+            },
+            'RegExp()': {
+                linkTo: 'RegExp',
+            },
+            'Error()': {
+                linkTo: 'Error',
+            },
+            'EvalError()': {},
+            'RangeError()': {},
+            'ReferenceError()': {},
+            'SyntaxError()': {},
+            'TypeError()': {},
+            'URIError()': {},
+            'globalThis': {},
+            'JSON': {},
+            'Math': {
+                linkTo: 'Math',
+            },
+            'console': {},
+            'Intl': {},
+            'ArrayBuffer()': {},
+            'Uint8Array()': {},
+            'Int8Array()': {},
+            'Uint16Array()': {},
+            'Int16Array()': {},
+            'Uint32Array()': {},
+            'Int32Array()': {},
+            'Float32Array()': {},
+            'Float64Array()': {},
+            'Uint8ClampedArray()': {},
+            'BigUint64Array()': {},
+            'BigInt64Array()': {},
+            'DataView()': {},
+            'Map()': {},
+            'BigInt()': {},
+            'Set()': {},
+            'WeakMap()': {},
+            'WeakSet()': {},
+            'Proxy()': {},
+            'Reflect': {},
+            'decodeURI()': {},
+            'decodeURIComponent()': {},
+            'encodeURI()': {},
+            'encodeURIComponent()': {},
+            'escape()': {},
+            'unescape()': {},
+            'eval()': {},
+            'isFinite()': {},
+            'isNaN()': {},
+            'webkitRTCPeerConnection()': {},
+            'webkitMediaStream()': {},
+            'WebSocket()': {},
+            'WebGLVertexArrayObject()': {},
+            'WebGLUniformLocation()': {},
+            'WebGLTransformFeedback()': {},
+            'WebGLTexture()': {},
+            'WebGLSync()': {},
+            'WebGLShaderPrecisionFormat()': {},
+            'WebGLShader()': {},
+            'WebGLSampler()': {},
+            'WebGLRenderingContext()': {},
+            'WebGLRenderbuffer()': {},
+            'WebGLQuery()': {},
+            'WebGLProgram()': {},
+            'WebGLFramebuffer()': {},
+            'WebGLContextEvent()': {},
+            'WebGLBuffer()': {},
+            'WebGLActiveInfo()': {},
+            'WebGL2RenderingContext()': {},
+            'WaveShaperNode()': {},
+            'TextEncoderStream()': {},
+            'TextEncoder()': {},
+            'TextDecoderStream()': {},
+            'TextDecoder()': {},
+            'SyncManager()': {},
+            'SubtleCrypto()': {},
+            'StorageEvent()': {},
+            'Storage()': {},
+            'StereoPannerNode()': {},
+            'SourceBufferList()': {},
+            'SourceBuffer()': {},
+            'ScriptProcessorNode()': {},
+            'ScreenOrientation()': {},
+            'RTCTrackEvent()': {},
+            'RTCStatsReport()': {},
+            'RTCSessionDescription()': {},
+            'RTCRtpTransceiver()': {},
+            'RTCRtpSender()': {},
+            'RTCRtpReceiver()': {},
+            'RTCPeerConnectionIceEvent()': {},
+            'RTCPeerConnectionIceErrorEvent()': {},
+            'RTCPeerConnection()': {},
+            'RTCIceCandidate()': {},
+            'RTCErrorEvent()': {},
+            'RTCError()': {},
+            'RTCDataChannelEvent()': {},
+            'RTCDataChannel()': {},
+            'RTCDTMFToneChangeEvent()': {},
+            'RTCDTMFSender()': {},
+            'RTCCertificate()': {},
+            'Plugin()': {},
+            'PluginArray()': {},
+            'PhotoCapabilities()': {},
+            'PeriodicWave()': {},
+            'Path2D()': {},
+            'PannerNode()': {},
+            'OverconstrainedError()': {},
+            'OscillatorNode()': {},
+            'OfflineAudioContext()': {},
+            'OfflineAudioCompletionEvent()': {},
+            'NetworkInformation()': {},
+            'MimeType()': {},
+            'MimeTypeArray()': {},
+            'MediaStreamTrackEvent()': {},
+            'MediaStreamTrack()': {},
+            'MediaStreamEvent()': {},
+            'MediaStream()': {},
+            'MediaStreamAudioSourceNode()': {},
+            'MediaStreamAudioDestinationNode()': {},
+            'MediaSettingsRange()': {},
+            'MediaRecorder()': {},
+            'MediaEncryptedEvent()': {},
+            'MediaElementAudioSourceNode()': {},
+            'MediaCapabilities()': {},
+            'InputDeviceInfo()': {},
+            'ImageCapture()': {},
+            'ImageBitmapRenderingContext()': {},
+            'IIRFilterNode()': {},
+            'IDBVersionChangeEvent()': {},
+            'IDBTransaction()': {},
+            'IDBRequest()': {},
+            'IDBOpenDBRequest()': {},
+            'IDBObjectStore()': {},
+            'IDBKeyRange()': {},
+            'IDBIndex()': {},
+            'IDBFactory()': {},
+            'IDBDatabase()': {},
+            'IDBCursorWithValue()': {},
+            'IDBCursor()': {},
+            'GeolocationPositionError()': {},
+            'GeolocationPosition()': {},
+            'GeolocationCoordinates()': {},
+            'Geolocation()': {},
+            'GamepadHapticActuator()': {},
+            'GamepadEvent()': {},
+            'Gamepad()': {},
+            'GamepadButton()': {},
+            'GainNode()': {},
+            'EventSource()': {},
+            'DynamicsCompressorNode()': {},
+            'DelayNode()': {},
+            'DecompressionStream()': {},
+            'DOMError()': {},
+            'CryptoKey()': {},
+            'Crypto()': {},
+            'ConvolverNode()': {},
+            'ConstantSourceNode()': {},
+            'CompressionStream()': {},
+            'CloseEvent()': {},
+            'ChannelSplitterNode()': {},
+            'ChannelMergerNode()': {},
+            'CanvasRenderingContext2D()': {},
+            'CanvasPattern()': {},
+            'CanvasGradient()': {},
+            'CanvasCaptureMediaStreamTrack()': {},
+            'BroadcastChannel()': {},
+            'BlobEvent()': {},
+            'BiquadFilterNode()': {},
+            'BeforeInstallPromptEvent()': {},
+            'BatteryManager()': {},
+            'BaseAudioContext()': {},
+            'AudioWorkletNode()': {},
+            'AudioScheduledSourceNode()': {},
+            'AudioProcessingEvent()': {},
+            'AudioParamMap()': {},
+            'AudioParam()': {},
+            'AudioNode()': {},
+            'AudioListener()': {},
+            'AudioDestinationNode()': {},
+            'AudioContext()': {},
+            'AudioBufferSourceNode()': {},
+            'AudioBuffer()': {},
+            'AnalyserNode()': {},
+            'XPathResult()': {},
+            'XPathExpression()': {},
+            'XPathEvaluator()': {},
+            'XMLSerializer()': {},
+            'XMLHttpRequestUpload()': {},
+            'XMLHttpRequestEventTarget()': {},
+            'XMLHttpRequest()': {},
+            'XMLDocument()': {},
+            'WritableStreamDefaultWriter()': {},
+            'WritableStream()': {},
+            'Worker()': {},
+            'Window()': {},
+            'WheelEvent()': {},
+            'VisualViewport()': {},
+            'ValidityState()': {},
+            'VTTCue()': {},
+            'URLSearchParams()': {},
+            'URL()': {},
+            'UIEvent()': {},
+            'TreeWalker()': {},
+            'TransitionEvent()': {},
+            'TransformStream()': {},
+            'TrackEvent()': {},
+            'TouchList()': {},
+            'TouchEvent()': {},
+            'Touch()': {},
+            'TimeRanges()': {},
+            'TextTrackList()': {},
+            'TextTrackCueList()': {},
+            'TextTrackCue()': {},
+            'TextTrack()': {},
+            'TextMetrics()': {},
+            'TextEvent()': {},
+            'Text()': {},
+            'TaskAttributionTiming()': {},
+            'StyleSheetList()': {},
+            'StyleSheet()': {},
+            'StylePropertyMapReadOnly()': {},
+            'StylePropertyMap()': {},
+            'StaticRange()': {},
+            'ShadowRoot()': {},
+            'Selection()': {},
+            'SecurityPolicyViolationEvent()': {},
+            'Screen()': {},
+            'SVGViewElement()': {},
+            'SVGUseElement()': {},
+            'SVGUnitTypes()': {},
+            'SVGTransformList()': {},
+            'SVGTransform()': {},
+            'SVGTitleElement()': {},
+            'SVGTextPositioningElement()': {},
+            'SVGTextPathElement()': {},
+            'SVGTextElement()': {},
+            'SVGTextContentElement()': {},
+            'SVGTSpanElement()': {},
+            'SVGSymbolElement()': {},
+            'SVGSwitchElement()': {},
+            'SVGStyleElement()': {},
+            'SVGStringList()': {},
+            'SVGStopElement()': {},
+            'SVGSetElement()': {},
+            'SVGScriptElement()': {},
+            'SVGSVGElement()': {},
+            'SVGRectElement()': {},
+            'SVGRect()': {},
+            'SVGRadialGradientElement()': {},
+            'SVGPreserveAspectRatio()': {},
+            'SVGPolylineElement()': {},
+            'SVGPolygonElement()': {},
+            'SVGPointList()': {},
+            'SVGPoint()': {},
+            'SVGPatternElement()': {},
+            'SVGPathElement()': {},
+            'SVGNumberList()': {},
+            'SVGNumber()': {},
+            'SVGMetadataElement()': {},
+            'SVGMatrix()': {},
+            'SVGMaskElement()': {},
+            'SVGMarkerElement()': {},
+            'SVGMPathElement()': {},
+            'SVGLinearGradientElement()': {},
+            'SVGLineElement()': {},
+            'SVGLengthList()': {},
+            'SVGLength()': {},
+            'SVGImageElement()': {},
+            'SVGGraphicsElement()': {},
+            'SVGGradientElement()': {},
+            'SVGGeometryElement()': {},
+            'SVGGElement()': {},
+            'SVGForeignObjectElement()': {},
+            'SVGFilterElement()': {},
+            'SVGFETurbulenceElement()': {},
+            'SVGFETileElement()': {},
+            'SVGFESpotLightElement()': {},
+            'SVGFESpecularLightingElement()': {},
+            'SVGFEPointLightElement()': {},
+            'SVGFEOffsetElement()': {},
+            'SVGFEMorphologyElement()': {},
+            'SVGFEMergeNodeElement()': {},
+            'SVGFEMergeElement()': {},
+            'SVGFEImageElement()': {},
+            'SVGFEGaussianBlurElement()': {},
+            'SVGFEFuncRElement()': {},
+            'SVGFEFuncGElement()': {},
+            'SVGFEFuncBElement()': {},
+            'SVGFEFuncAElement()': {},
+            'SVGFEFloodElement()': {},
+            'SVGFEDropShadowElement()': {},
+            'SVGFEDistantLightElement()': {},
+            'SVGFEDisplacementMapElement()': {},
+            'SVGFEDiffuseLightingElement()': {},
+            'SVGFEConvolveMatrixElement()': {},
+            'SVGFECompositeElement()': {},
+            'SVGFEComponentTransferElement()': {},
+            'SVGFEColorMatrixElement()': {},
+            'SVGFEBlendElement()': {},
+            'SVGEllipseElement()': {},
+            'SVGElement()': {},
+            'SVGDiscardElement()': {},
+            'SVGDescElement()': {},
+            'SVGDefsElement()': {},
+            'SVGComponentTransferFunctionElement()': {},
+            'SVGClipPathElement()': {},
+            'SVGCircleElement()': {},
+            'SVGAnimationElement()': {},
+            'SVGAnimatedTransformList()': {},
+            'SVGAnimatedString()': {},
+            'SVGAnimatedRect()': {},
+            'SVGAnimatedPreserveAspectRatio()': {},
+            'SVGAnimatedNumberList()': {},
+            'SVGAnimatedNumber()': {},
+            'SVGAnimatedLengthList()': {},
+            'SVGAnimatedLength()': {},
+            'SVGAnimatedInteger()': {},
+            'SVGAnimatedEnumeration()': {},
+            'SVGAnimatedBoolean()': {},
+            'SVGAnimatedAngle()': {},
+            'SVGAnimateTransformElement()': {},
+            'SVGAnimateMotionElement()': {},
+            'SVGAnimateElement()': {},
+            'SVGAngle()': {},
+            'SVGAElement()': {},
+            'Response()': {},
+            'ResizeObserverEntry()': {},
+            'ResizeObserver()': {},
+            'Request()': {},
+            'ReportingObserver()': {},
+            'ReadableStreamDefaultReader()': {},
+            'ReadableStream()': {},
+            'Range()': {},
+            'RadioNodeList()': {},
+            'PromiseRejectionEvent()': {},
+            'ProgressEvent()': {},
+            'ProcessingInstruction()': {},
+            'PopStateEvent()': {},
+            'PointerEvent()': {},
+            'PerformanceTiming()': {},
+            'PerformanceServerTiming()': {},
+            'PerformanceResourceTiming()': {},
+            'PerformancePaintTiming()': {},
+            'PerformanceObserverEntryList()': {},
+            'PerformanceObserver()': {},
+            'PerformanceNavigationTiming()': {},
+            'PerformanceNavigation()': {},
+            'PerformanceMeasure()': {},
+            'PerformanceMark()': {},
+            'PerformanceLongTaskTiming()': {},
+            'PerformanceEventTiming()': {},
+            'PerformanceEntry()': {},
+            'PerformanceElementTiming()': {},
+            'Performance()': {},
+            'PageTransitionEvent()': {},
+            'NodeList()': {},
+            'NodeIterator()': {},
+            'NodeFilter()': {},
+            'Node()': {},
+            'Navigator()': {},
+            'NamedNodeMap()': {},
+            'MutationRecord()': {},
+            'MutationObserver()': {},
+            'MutationEvent()': {},
+            'MouseEvent()': {},
+            'MessagePort()': {},
+            'MessageEvent()': {},
+            'MessageChannel()': {},
+            'MediaQueryListEvent()': {},
+            'MediaQueryList()': {},
+            'MediaList()': {},
+            'MediaError()': {},
+            'Location()': {},
+            'LayoutShift()': {},
+            'LargestContentfulPaint()': {},
+            'KeyframeEffect()': {},
+            'KeyboardEvent()': {},
+            'IntersectionObserverEntry()': {},
+            'IntersectionObserver()': {},
+            'InputEvent()': {},
+            'InputDeviceCapabilities()': {},
+            'ImageData()': {},
+            'ImageBitmap()': {},
+            'IdleDeadline()': {},
+            'History()': {},
+            'Headers()': {},
+            'HashChangeEvent()': {},
+            'HTMLVideoElement()': {},
+            'HTMLUnknownElement()': {},
+            'HTMLUListElement()': {},
+            'HTMLTrackElement()': {},
+            'HTMLTitleElement()': {},
+            'HTMLTimeElement()': {},
+            'HTMLTextAreaElement()': {},
+            'HTMLTemplateElement()': {},
+            'HTMLTableSectionElement()': {},
+            'HTMLTableRowElement()': {},
+            'HTMLTableElement()': {},
+            'HTMLTableColElement()': {},
+            'HTMLTableCellElement()': {},
+            'HTMLTableCaptionElement()': {},
+            'HTMLStyleElement()': {},
+            'HTMLSpanElement()': {},
+            'HTMLSourceElement()': {},
+            'HTMLSlotElement()': {},
+            'HTMLShadowElement()': {},
+            'HTMLSelectElement()': {},
+            'HTMLScriptElement()': {},
+            'HTMLQuoteElement()': {},
+            'HTMLProgressElement()': {},
+            'HTMLPreElement()': {},
+            'HTMLPictureElement()': {},
+            'HTMLParamElement()': {},
+            'HTMLParagraphElement()': {},
+            'HTMLOutputElement()': {},
+            'HTMLOptionsCollection()': {},
+            'Option()': {},
+            'HTMLOptionElement()': {},
+            'HTMLOptGroupElement()': {},
+            'HTMLObjectElement()': {},
+            'HTMLOListElement()': {},
+            'HTMLModElement()': {},
+            'HTMLMeterElement()': {},
+            'HTMLMetaElement()': {},
+            'HTMLMenuElement()': {},
+            'HTMLMediaElement()': {},
+            'HTMLMarqueeElement()': {},
+            'HTMLMapElement()': {},
+            'HTMLLinkElement()': {},
+            'HTMLLegendElement()': {},
+            'HTMLLabelElement()': {},
+            'HTMLLIElement()': {},
+            'HTMLInputElement()': {},
+            'Image()': {},
+            'HTMLImageElement()': {},
+            'HTMLIFrameElement()': {},
+            'HTMLHtmlElement()': {},
+            'HTMLHeadingElement()': {},
+            'HTMLHeadElement()': {},
+            'HTMLHRElement()': {},
+            'HTMLFrameSetElement()': {},
+            'HTMLFrameElement()': {},
+            'HTMLFormElement()': {},
+            'HTMLFormControlsCollection()': {},
+            'HTMLFontElement()': {},
+            'HTMLFieldSetElement()': {},
+            'HTMLEmbedElement()': {},
+            'HTMLElement()': {},
+            'HTMLDocument()': {},
+            'HTMLDivElement()': {},
+            'HTMLDirectoryElement()': {},
+            'HTMLDialogElement()': {},
+            'HTMLDetailsElement()': {},
+            'HTMLDataListElement()': {},
+            'HTMLDataElement()': {},
+            'HTMLDListElement()': {},
+            'HTMLContentElement()': {},
+            'HTMLCollection()': {},
+            'HTMLCanvasElement()': {},
+            'HTMLButtonElement()': {},
+            'HTMLBodyElement()': {},
+            'HTMLBaseElement()': {},
+            'HTMLBRElement()': {},
+            'Audio()': {},
+            'HTMLAudioElement()': {},
+            'HTMLAreaElement()': {},
+            'HTMLAnchorElement()': {},
+            'HTMLAllCollection()': {},
+            'FormDataEvent()': {},
+            'FormData()': {},
+            'FontFaceSetLoadEvent()': {},
+            'FontFace()': {},
+            'FocusEvent()': {},
+            'FileReader()': {},
+            'FileList()': {},
+            'File()': {},
+            'External()': {},
+            'EventTarget()': {},
+            'Event()': {},
+            'ErrorEvent()': {},
+            'ElementInternals()': {},
+            'Element()': {},
+            'DragEvent()': {},
+            'DocumentType()': {},
+            'DocumentFragment()': {},
+            'Document()': {},
+            'DataTransferItemList()': {},
+            'DataTransferItem()': {},
+            'DataTransfer()': {},
+            'DOMTokenList()': {},
+            'DOMStringMap()': {},
+            'DOMStringList()': {},
+            'DOMRectReadOnly()': {},
+            'DOMRectList()': {},
+            'DOMRect()': {},
+            'DOMQuad()': {},
+            'DOMPointReadOnly()': {},
+            'DOMPoint()': {},
+            'DOMParser()': {},
+            'DOMMatrixReadOnly()': {},
+            'DOMMatrix()': {},
+            'DOMImplementation()': {},
+            'DOMException()': {},
+            'CustomEvent()': {},
+            'CustomElementRegistry()': {},
+            'CountQueuingStrategy()': {},
+            'CompositionEvent()': {},
+            'Comment()': {},
+            'ClipboardEvent()': {},
+            'CharacterData()': {},
+            'CSSVariableReferenceValue()': {},
+            'CSSUnparsedValue()': {},
+            'CSSUnitValue()': {},
+            'CSSTranslate()': {},
+            'CSSTransformValue()': {},
+            'CSSTransformComponent()': {},
+            'CSSSupportsRule()': {},
+            'CSSStyleValue()': {},
+            'CSSStyleSheet()': {},
+            'CSSStyleRule()': {},
+            'CSSStyleDeclaration()': {},
+            'CSSSkewY()': {},
+            'CSSSkewX()': {},
+            'CSSSkew()': {},
+            'CSSScale()': {},
+            'CSSRuleList()': {},
+            'CSSRule()': {},
+            'CSSRotate()': {},
+            'CSSPositionValue()': {},
+            'CSSPerspective()': {},
+            'CSSPageRule()': {},
+            'CSSNumericValue()': {},
+            'CSSNumericArray()': {},
+            'CSSNamespaceRule()': {},
+            'CSSMediaRule()': {},
+            'CSSMatrixComponent()': {},
+            'CSSMathValue()': {},
+            'CSSMathSum()': {},
+            'CSSMathProduct()': {},
+            'CSSMathNegate()': {},
+            'CSSMathMin()': {},
+            'CSSMathMax()': {},
+            'CSSMathInvert()': {},
+            'CSSKeywordValue()': {},
+            'CSSKeyframesRule()': {},
+            'CSSKeyframeRule()': {},
+            'CSSImportRule()': {},
+            'CSSImageValue()': {},
+            'CSSGroupingRule()': {},
+            'CSSFontFaceRule()': {},
+            'CSS()': {},
+            'CSSConditionRule()': {},
+            'CDATASection()': {},
+            'ByteLengthQueuingStrategy()': {},
+            'Blob()': {},
+            'BeforeUnloadEvent()': {},
+            'BarProp()': {},
+            'Attr()': {},
+            'AnimationEvent()': {},
+            'AnimationEffect()': {},
+            'Animation()': {},
+            'AbortSignal()': {},
+            'AbortController()': {},
+            'WebKitCSSMatrix()': {},
+            'WebKitMutationObserver()': {},
+            'webkitURL()': {},
+            'parent': {},
+            'opener': {},
+            'top': {},
+            'length': {},
+            'frames': {},
+            'closed': {},
+            'location': {},
+            'self': {},
+            'window': {},
+            'document': {},
+            'name': {},
+            'customElements': {},
+            'history': {},
+            'locationbar': {},
+            'menubar': {},
+            'personalbar': {},
+            'scrollbars': {},
+            'statusbar': {},
+            'toolbar': {},
+            'status': {},
+            'frameElement': {},
+            'navigator': {},
+            'origin': {},
+            'external': {},
+            'screen': {},
+            'innerWidth': {},
+            'innerHeight': {},
+            'scrollX': {},
+            'pageXOffset': {},
+            'scrollY': {},
+            'pageYOffset': {},
+            'visualViewport': {},
+            'screenX': {},
+            'screenY': {},
+            'outerWidth': {},
+            'outerHeight': {},
+            'devicePixelRatio': {},
+            'clientInformation': {},
+            'event': {},
+            'offscreenBuffering': {},
+            'screenLeft': {},
+            'screenTop': {},
+            'defaultStatus': {},
+            'defaultstatus': {},
+            'styleMedia': {},
+            'onsearch': {},
+            'onwebkitanimationend': {},
+            'onwebkitanimationiteration': {},
+            'onwebkitanimationstart': {},
+            'onwebkittransitionend': {},
+            'isSecureContext': {},
+            'onabort': {},
+            'onblur': {},
+            'oncancel': {},
+            'oncanplay': {},
+            'oncanplaythrough': {},
+            'onchange': {},
+            'onclick': {},
+            'onclose': {},
+            'oncontextmenu': {},
+            'oncuechange': {},
+            'ondblclick': {},
+            'ondrag': {},
+            'ondragend': {},
+            'ondragenter': {},
+            'ondragleave': {},
+            'ondragover': {},
+            'ondragstart': {},
+            'ondrop': {},
+            'ondurationchange': {},
+            'onemptied': {},
+            'onended': {},
+            'onerror': {},
+            'onfocus': {},
+            'onformdata': {},
+            'oninput': {},
+            'oninvalid': {},
+            'onkeydown': {},
+            'onkeypress': {},
+            'onkeyup': {},
+            'onload': {},
+            'onloadeddata': {},
+            'onloadedmetadata': {},
+            'onloadstart': {},
+            'onmousedown': {},
+            'onmouseenter': {},
+            'onmouseleave': {},
+            'onmousemove': {},
+            'onmouseout': {},
+            'onmouseover': {},
+            'onmouseup': {},
+            'onmousewheel': {},
+            'onpause': {},
+            'onplay': {},
+            'onplaying': {},
+            'onprogress': {},
+            'onratechange': {},
+            'onreset': {},
+            'onresize': {},
+            'onscroll': {},
+            'onseeked': {},
+            'onseeking': {},
+            'onselect': {},
+            'onstalled': {},
+            'onsubmit': {},
+            'onsuspend': {},
+            'ontimeupdate': {},
+            'ontoggle': {},
+            'onvolumechange': {},
+            'onwaiting': {},
+            'onwheel': {},
+            'onauxclick': {},
+            'ongotpointercapture': {},
+            'onlostpointercapture': {},
+            'onpointerdown': {},
+            'onpointermove': {},
+            'onpointerup': {},
+            'onpointercancel': {},
+            'onpointerover': {},
+            'onpointerout': {},
+            'onpointerenter': {},
+            'onpointerleave': {},
+            'onselectstart': {},
+            'onselectionchange': {},
+            'onanimationend': {},
+            'onanimationiteration': {},
+            'onanimationstart': {},
+            'ontransitionend': {},
+            'onafterprint': {},
+            'onbeforeprint': {},
+            'onbeforeunload': {},
+            'onhashchange': {},
+            'onlanguagechange': {},
+            'onmessage': {},
+            'onmessageerror': {},
+            'onoffline': {},
+            'ononline': {},
+            'onpagehide': {},
+            'onpageshow': {},
+            'onpopstate': {},
+            'onrejectionhandled': {},
+            'onstorage': {},
+            'onunhandledrejection': {},
+            'onunload': {},
+            'performance': {},
+            'stop()': {},
+            'open()': {},
+            'alert()': {},
+            'confirm()': {},
+            'prompt()': {},
+            'print()': {},
+            'queueMicrotask()': {},
+            'requestAnimationFrame()': {},
+            'cancelAnimationFrame()': {},
+            'captureEvents()': {},
+            'releaseEvents()': {},
+            'requestIdleCallback()': {},
+            'cancelIdleCallback()': {},
+            'getComputedStyle()': {},
+            'matchMedia()': {},
+            'moveTo()': {},
+            'moveBy()': {},
+            'resizeTo()': {},
+            'resizeBy()': {},
+            'scroll()': {},
+            'scrollTo()': {},
+            'scrollBy()': {},
+            'getSelection()': {},
+            'find()': {},
+            'webkitRequestAnimationFrame()': {},
+            'webkitCancelAnimationFrame()': {},
+            'fetch()': {},
+            'btoa()': {},
+            'atob()': {},
+            'setTimeout()': {},
+            'clearTimeout()': {},
+            'setInterval()': {},
+            'clearInterval()': {},
+            'createImageBitmap()': {},
+            'close()': {},
+            'focus()': {},
+            'blur()': {},
+            'postMessage()': {},
+            'onappinstalled': {},
+            'onbeforeinstallprompt': {},
+            'crypto': {},
+            'indexedDB': {},
+            'webkitStorageInfo': {},
+            'sessionStorage': {},
+            'localStorage': {},
+            'SharedArrayBuffer()': {},
+            'Atomics': {},
+            'chrome': {},
+            'WebAssembly': {},
+            'FeaturePolicy()': {},
+            'SharedWorker()': {},
+            'OffscreenCanvas()': {},
+            'UserActivation()': {},
+            'XSLTProcessor()': {},
+            'onpointerrawupdate': {},
+            'ClipboardItem()': {},
+            'BackgroundFetchManager()': {},
+            'BackgroundFetchRecord()': {},
+            'BackgroundFetchRegistration()': {},
+            'MediaMetadata()': {},
+            'MediaSession()': {},
+            'MediaSource()': {},
+            'Notification()': {},
+            'PaymentInstruments()': {},
+            'PaymentManager()': {},
+            'PaymentRequestUpdateEvent()': {},
+            'PeriodicSyncManager()': {},
+            'Permissions()': {},
+            'PermissionStatus()': {},
+            'EnterPictureInPictureEvent()': {},
+            'PictureInPictureWindow()': {},
+            'PushManager()': {},
+            'PushSubscription()': {},
+            'PushSubscriptionOptions()': {},
+            'RTCDtlsTransport()': {},
+            'RTCSctpTransport()': {},
+            'RemotePlayback()': {},
+            'webkitSpeechGrammar()': {},
+            'webkitSpeechGrammarList()': {},
+            'webkitSpeechRecognition()': {},
+            'webkitSpeechRecognitionError()': {},
+            'webkitSpeechRecognitionEvent()': {},
+            'SpeechSynthesisErrorEvent()': {},
+            'SpeechSynthesisEvent()': {},
+            'SpeechSynthesisUtterance()': {},
+            'OffscreenCanvasRenderingContext2D()': {},
+            'VideoPlaybackQuality()': {},
+            'BluetoothUUID()': {},
+            'speechSynthesis': {},
+            'webkitRequestFileSystem()': {},
+            'webkitResolveLocalFileSystemURL()': {},
+            'openDatabase()': {},
+            'applicationCache': {},
+            'Worklet()': {},
+            'ApplicationCache()': {},
+            'ApplicationCacheErrorEvent()': {},
+            'caches': {},
+            'ondevicemotion': {},
+            'ondeviceorientation': {},
+            'ondeviceorientationabsolute': {},
+            'AbsoluteOrientationSensor()': {},
+            'Accelerometer()': {},
+            'AudioWorklet()': {},
+            'Cache()': {},
+            'CacheStorage()': {},
+            'Clipboard()': {},
+            'Credential()': {},
+            'CredentialsContainer()': {},
+            'DeviceMotionEvent()': {},
+            'DeviceMotionEventAcceleration()': {},
+            'DeviceMotionEventRotationRate()': {},
+            'DeviceOrientationEvent()': {},
+            'FederatedCredential()': {},
+            'Gyroscope()': {},
+            'Keyboard()': {},
+            'KeyboardLayoutMap()': {},
+            'LinearAccelerationSensor()': {},
+            'Lock()': {},
+            'LockManager()': {},
+            'MediaDeviceInfo()': {},
+            'MediaDevices()': {},
+            'MediaKeyMessageEvent()': {},
+            'MediaKeys()': {},
+            'MediaKeySession()': {},
+            'MediaKeyStatusMap()': {},
+            'MediaKeySystemAccess()': {},
+            'MIDIAccess()': {},
+            'MIDIConnectionEvent()': {},
+            'MIDIInput()': {},
+            'MIDIInputMap()': {},
+            'MIDIMessageEvent()': {},
+            'MIDIOutput()': {},
+            'MIDIOutputMap()': {},
+            'MIDIPort()': {},
+            'NavigationPreloadManager()': {},
+            'OrientationSensor()': {},
+            'PasswordCredential()': {},
+            'RelativeOrientationSensor()': {},
+            'RTCIceTransport()': {},
+            'Sensor()': {},
+            'SensorErrorEvent()': {},
+            'ServiceWorker()': {},
+            'ServiceWorkerContainer()': {},
+            'ServiceWorkerRegistration()': {},
+            'StorageManager()': {},
+            'PaymentMethodChangeEvent()': {},
+            'PaymentAddress()': {},
+            'PaymentRequest()': {},
+            'PaymentResponse()': {},
+            'Presentation()': {},
+            'PresentationAvailability()': {},
+            'PresentationConnection()': {},
+            'PresentationConnectionAvailableEvent()': {},
+            'PresentationConnectionCloseEvent()': {},
+            'PresentationConnectionList()': {},
+            'PresentationReceiver()': {},
+            'PresentationRequest()': {},
+            'AuthenticatorAssertionResponse()': {},
+            'AuthenticatorAttestationResponse()': {},
+            'AuthenticatorResponse()': {},
+            'PublicKeyCredential()': {},
+            'Bluetooth()': {},
+            'BluetoothCharacteristicProperties()': {},
+            'BluetoothDevice()': {},
+            'BluetoothRemoteGATTCharacteristic()': {},
+            'BluetoothRemoteGATTDescriptor()': {},
+            'BluetoothRemoteGATTServer()': {},
+            'BluetoothRemoteGATTService()': {},
+            'USB()': {},
+            'USBAlternateInterface()': {},
+            'USBConfiguration()': {},
+            'USBConnectionEvent()': {},
+            'USBDevice()': {},
+            'USBEndpoint()': {},
+            'USBInterface()': {},
+            'USBInTransferResult()': {},
+            'USBIsochronousInTransferPacket()': {},
+            'USBIsochronousInTransferResult()': {},
+            'USBIsochronousOutTransferPacket()': {},
+            'USBIsochronousOutTransferResult()': {},
+            'USBOutTransferResult()': {},
+            'XR()': {},
+            'XRBoundedReferenceSpace()': {},
+            'XRFrame()': {},
+            'XRInputSource()': {},
+            'XRInputSourceArray()': {},
+            'XRInputSourceEvent()': {},
+            'XRInputSourcesChangeEvent()': {},
+            'XRPose()': {},
+            'XRReferenceSpace()': {},
+            'XRReferenceSpaceEvent()': {},
+            'XRRenderState()': {},
+            'XRRigidTransform()': {},
+            'XRSession()': {},
+            'XRSessionEvent()': {},
+            'XRSpace()': {},
+            'XRView()': {},
+            'XRViewerPose()': {},
+            'XRViewport()': {},
+            'XRWebGLLayer()': {},
+            'getFormatOwnPropertyNames()': {},
+            'writeObject()': {},
+            'toggleClass()': {},
+        },
+    };
+
+    const _WindowPrototype = {
+        name: 'Window.prototype',
+        type: 'object_prototype',
+        properties: {
+            'TEMPORARY': {},
+            'PERSISTENT': {},
+            'constructor()': {},
+        },
+        children: {
+            _window
+        }
+    };
+
+    /* Object.prototype influence */
+    const _EventTargetPrototype = {
+        name: 'EventTarget.prototype',
+        type: 'object_prototype',
+        properties: {
+            'addEventListener()': {},
+            'removeEventListener()': {},
+            'dispatchEvent()': {},
+            'constructor()': {},
+        },
+        children: {
+            _WindowPrototype,
+            _XMLHttpRequestEventTargetPrototype,
+            _NodePrototype,
+
+        }
+    };
+
+    const newPromise = {
+        type: 'endPoint',
+        name: 'new Promise()',
+    };
+
+    const _Promise = {
+        name: 'Promise',
+        type: 'function',
+        properties: {
+            'length': {},
+            'name': {},
+            'prototype': {},
+            'all()': {},
+            'race()': {},
+            'resolve()': {},
+            'reject()': {},
+            'allSettled()': {},
+        },
+    };
+    const _PromisePrototype = {
+        wrapper: _Promise,
+        name: 'Promise.prototype',
+        type: 'object_prototype',
+        properties: {
+            'constructor()': {},
+            'then()': {},
+            'catch()': {},
+            'finally()': {},
+        },
+        children: {
+            newPromise
+        }
+    };
+
+    const newDataView = {
+        type: 'endPoint',
+        name: 'new DataView()',
+    };
+
+    const _DataViewPrototype = {
+        name: 'DataView.prototype',
+        type: 'object_prototype',
+        properties: {
+            'constructor()': {},
+            'buffer': {},
+            'byteLength': {},
+            'byteOffset': {},
+            'getInt8()': {},
+            'setInt8()': {},
+            'getUint8()': {},
+            'setUint8()': {},
+            'getInt16()': {},
+            'setInt16()': {},
+            'getUint16()': {},
+            'setUint16()': {},
+            'getInt32()': {},
+            'setInt32()': {},
+            'getUint32()': {},
+            'setUint32()': {},
+            'getFloat32()': {},
+            'setFloat32()': {},
+            'getFloat64()': {},
+            'setFloat64()': {},
+            'getBigInt64()': {},
+            'setBigInt64()': {},
+            'getBigUint64()': {},
+            'setBigUint64()': {},
+        },
+        children: {
+            newDataView
+        }
+    };
+
+    const newObject = {
+        type: 'endPoint',
+        properties: {
+            '{ }': {},
+            'new Object()': {},
+            'Object()': {},
+            'new Object': {},
+        }
+    };
+
+    const newArrayBuffer = {
+        type: 'endPoint',
+        properties: {
+            'new ArrayBuffer()': {},
+            'new ArrayBuffer': {},
+        }
+    };
+
+    const _ArrayBuffer = {
+        name: 'ArrayBuffer',
+        type: 'function',
+        properties: {
+            'length': {},
+            'name': {},
+            'prototype': {},
+            'isView()': {},
+        },
+    };
+    const _ArrayBufferPrototype = {
+        wrapper: _ArrayBuffer,
+        name: 'ArrayBuffer.prototype',
+        type: 'object_prototype',
+        properties: {
+            'constructor()': {},
+            'byteLength': {},
+            'slice()': {},
+        },
+        children: {
+            newArrayBuffer
+        }
+    };
+
+    const newWeakSet = {
+        type: 'endPoint',
+        properties: {
+            'new WeakSet()': {},
+            'new WeakSet': {},
+        }
+    };
+
+    const _WeakSetPrototype = {
+        name: 'WeakSet.prototype',
+        type: 'object_prototype',
+        properties: {
+            'constructor()': {},
+            'delete()': {},
+            'has()': {},
+            'add()': {},
+        },
+        children: {
+            newWeakSet
+        }
+    };
+
+    const newWeakMap = {
+        type: 'endPoint',
+        properties: {
+            'new WeakMap()': {},
+            'new WeakMap': {},
+        }
+    };
+
+    const _WeakMapPrototype = {
+        name: 'WeakMap.prototype',
+        type: 'object_prototype',
+        properties: {
+            'constructor()': {},
+            'delete()': {},
+            'get()': {},
+            'set()': {},
+            'has()': {},
+        },
+        children: {
+            newWeakMap
+        }
+    };
+
+    const newSet = {
+        type: 'endPoint',
+        properties: {
+            'new Set()': {},
+            'new Set': {},
+        }
+    };
+
+    const _SetPrototype = {
+        name: 'Set.prototype',
+        type: 'object_prototype',
+        properties: {
+            'constructor()': {},
+            'has()': {},
+            'add()': {},
+            'delete()': {},
+            'clear()': {},
+            'entries()': {},
+            'forEach()': {},
+            'size': {},
+            'values()': {},
+            'keys()': {},
+        },
+        children: {
+            newSet
+        }
+    };
+
+    const newMap = {
+        type: 'endPoint',
+        properties: {
+            'new Map()': {},
+            'new Map': {},
+        }
+    };
+
+    const _MapPrototype = {
+        name: 'Map.prototype',
+        type: 'object_prototype',
+        properties: {
+            'constructor()': {},
+            'get()': {},
+            'set()': {},
+            'has()': {},
+            'delete()': {},
+            'clear()': {},
+            'entries()': {},
+            'forEach()': {},
+            'keys()': {},
+            'size': {},
+            'values()': {},
+        },
+        children: {
+            newMap
+        }
+    };
+
+    const newSymbol = {
+        type: 'endPoint',
+        properties: {
+            'Symbol()': {},
+        }
+    };
+
+    const _Symbol = {
+        name: 'Symbol',
+        type: 'function',
+        properties: {
+            'length': {},
+            'name': {},
+            'prototype': {},
+            'for()': {},
+            'keyFor()': {},
+            'asyncIterator': {},
+            'hasInstance': {},
+            'isConcatSpreadable': {},
+            'iterator': {},
+            'match': {},
+            'matchAll': {},
+            'replace': {},
+            'search': {},
+            'species': {},
+            'split': {},
+            'toPrimitive': {},
+            'toStringTag': {},
+            'unscopables': {},
+        },
+    };
+    const _SymbolPrototype = {
+        wrapper: _Symbol,
+        name: 'Symbol.prototype',
+        type: 'object_prototype',
+        properties: {
+            'constructor()': {},
+            'toString()': {},
+            'valueOf()': {},
+            'description': {},
+        },
+        children: {
+            newSymbol
+        }
+    };
+
+    const newError = {
+        type: 'endPoint',
+        properties: {
+            'new Error()': {},
+            'new Error': {},
+            'Error()': {},
+        }
+    };
+
+    const _Error = {
+        name: 'Error',
+        type: 'function',
+        properties: {
+            'length': {},
+            'name': {},
+            'prototype': {},
+            'captureStackTrace()': {},
+            'stackTraceLimit': {},
+        },
+    };
+    const _ErrorPrototype = {
+        wrapper: _Error,
+        name: 'Error.prototype',
+        type: 'object_prototype',
+        properties: {
+            'constructor()': {},
+            'name': {},
+            'message': {},
+            'toString()': {},
+        },
+        children: {
+            newError
+        }
+    };
+
+    const newRegExp = {
+        type: 'endPoint',
+        properties: {
+            '/ /': {},
+            'new RegExp()': {},
+            'new RegExp': {},
+            'RegExp()': {},
+        }
+    };
+
+    const _RegExp = {
+        name: 'RegExp',
+        type: 'function',
+        properties: {
+            'length': {},
+            'name': {},
+            'prototype': {},
+            'input': {},
+            '$_': {},
+            'lastMatch': {},
+            '$&': {},
+            'lastParen': {},
+            '$+': {},
+            'leftContext': {},
+            '$`': {},
+            'rightContext': {},
+            '$\'': {},
+            '$1': {},
+            '$2': {},
+            '$3': {},
+            '$4': {},
+            '$5': {},
+            '$6': {},
+            '$7': {},
+            '$8': {},
+            '$9': {},
+        },
+    };
+    const _RegExpPrototype = {
+        wrapper: _RegExp,
+        name: 'RegExp.prototype',
+        type: 'object_prototype',
+        properties: {
+            'constructor()': {},
+            'exec()': {},
+            'dotAll': {},
+            'flags': {},
+            'global': {},
+            'ignoreCase': {},
+            'multiline': {},
+            'source': {},
+            'sticky': {},
+            'unicode': {},
+            'compile()': {},
+            'toString()': {},
+            'test()': {},
+        },
+        children: {
+            newRegExp
+        }
+    };
+
+    const newDate = {
+        type: 'endPoint',
+        properties: {
+            'new Date()': {},
+            'new Date': {},
+            'Date()': {},
+        }
+    };
+
+    const _Date = {
+        name: 'Date',
+        type: 'function',
+        properties: {
+            'length': {},
+            'name': {},
+            'prototype': {},
+            'now()': {},
+            'parse()': {},
+            'UTC()': {},
+        },
+    };
+    const _DatePrototype = {
+        wrapper: _Date,
+        name: 'Date.prototype',
+        type: 'object_prototype',
+        properties: {
+            'constructor()': {},
+            'toString()': {},
+            'toDateString()': {},
+            'toTimeString()': {},
+            'toISOString()': {},
+            'toUTCString()': {},
+            'toGMTString()': {},
+            'getDate()': {},
+            'setDate()': {},
+            'getDay()': {},
+            'getFullYear()': {},
+            'setFullYear()': {},
+            'getHours()': {},
+            'setHours()': {},
+            'getMilliseconds()': {},
+            'setMilliseconds()': {},
+            'getMinutes()': {},
+            'setMinutes()': {},
+            'getMonth()': {},
+            'setMonth()': {},
+            'getSeconds()': {},
+            'setSeconds()': {},
+            'getTime()': {},
+            'setTime()': {},
+            'getTimezoneOffset()': {},
+            'getUTCDate()': {},
+            'setUTCDate()': {},
+            'getUTCDay()': {},
+            'getUTCFullYear()': {},
+            'setUTCFullYear()': {},
+            'getUTCHours()': {},
+            'setUTCHours()': {},
+            'getUTCMilliseconds()': {},
+            'setUTCMilliseconds()': {},
+            'getUTCMinutes()': {},
+            'setUTCMinutes()': {},
+            'getUTCMonth()': {},
+            'setUTCMonth()': {},
+            'getUTCSeconds()': {},
+            'setUTCSeconds()': {},
+            'valueOf()': {},
+            'getYear()': {},
+            'setYear()': {},
+            'toJSON()': {},
+            'toLocaleString()': {},
+            'toLocaleDateString()': {},
+            'toLocaleTimeString()': {},
+        },
+        children: {
+            newDate
+        }
+    };
+
+    const newNumber = {
+        type: 'endPoint',
+        properties: {
+            'new Number()': {},
+            'new Number': {},
+            'Number()': {},
+        }
+    };
+
+    const _Number = {
+        name: 'Number',
+        type: 'function',
+        properties: {
+            'length': {},
+            'name': {},
+            'prototype': {},
+            'isFinite()': {},
+            'isInteger()': {},
+            'isNaN()': {},
+            'isSafeInteger()': {},
+            'parseFloat()': {},
+            'parseInt()': {},
+            'MAX_VALUE': {},
+            'MIN_VALUE': {},
+            'NaN': {},
+            'NEGATIVE_INFINITY': {},
+            'POSITIVE_INFINITY': {},
+            'MAX_SAFE_INTEGER': {},
+            'MIN_SAFE_INTEGER': {},
+            'EPSILON': {},
+        },
+    };
+    const _NumberPrototype = {
+        wrapper: _Number,
+        name: 'Number.prototype',
+        type: 'object_prototype',
+        properties: {
+            'constructor()': {},
+            'toExponential()': {},
+            'toFixed()': {},
+            'toPrecision()': {},
+            'toString()': {},
+            'valueOf()': {},
+            'toLocaleString()': {},
+        },
+        children: {
+            newNumber
+        }
+    };
+
+    const newBoolean = {
+        type: 'endPoint',
+        properties: {
+            'new Boolean()': {},
+            'new Boolean': {},
+            'Boolean()': {},
+        }
+    };
+
+    const _BooleanPrototype = {
+        name: 'Boolean.prototype',
+        type: 'object_prototype',
+        properties: {
+            'constructor()': {},
+            'toString()': {},
+            'valueOf()': {},
+        },
+        children: {
+            newBoolean
+        }
+    };
+
+    const newString = {
+        type: 'endPoint',
+        properties: {
+            '\' \'': {},
+            '" "': {},
+            '` `': {},
+            'new String()': {},
+            'new String': {},
+            'String()': {},
+        }
+    };
+
+    const _String = {
+        name: 'String',
+        type: 'function',
+        properties: {
+            'length': {},
+            'name': {},
+            'prototype': {},
+            'fromCharCode()': {},
+            'fromCodePoint()': {},
+            'raw()': {},
+        },
+    };
+    const _StringPrototype = {
+        wrapper: _String,
+        name: 'String.prototype',
+        type: 'object_prototype',
+        properties: {
+            'length': {},
+            'constructor()': {},
+            'anchor()': {},
+            'big()': {},
+            'blink()': {},
+            'bold()': {},
+            'charAt()': {},
+            'charCodeAt()': {},
+            'codePointAt()': {},
+            'concat()': {},
+            'endsWith()': {},
+            'fontcolor()': {},
+            'fontsize()': {},
+            'fixed()': {},
+            'includes()': {},
+            'indexOf()': {},
+            'italics()': {},
+            'lastIndexOf()': {},
+            'link()': {},
+            'localeCompare()': {},
+            'match()': {},
+            'matchAll()': {},
+            'normalize()': {},
+            'padEnd()': {},
+            'padStart()': {},
+            'repeat()': {},
+            'replace()': {},
+            'search()': {},
+            'slice()': {},
+            'small()': {},
+            'split()': {},
+            'strike()': {},
+            'sub()': {},
+            'substr()': {},
+            'substring()': {},
+            'sup()': {},
+            'startsWith()': {},
+            'toString()': {},
+            'trim()': {},
+            'trimStart()': {},
+            'trimLeft()': {},
+            'trimEnd()': {},
+            'trimRight()': {},
+            'toLocaleLowerCase()': {},
+            'toLocaleUpperCase()': {},
+            'toLowerCase()': {},
+            'toUpperCase()': {},
+            'valueOf()': {},
+        },
+        children: {
+            newString
+        }
+    };
+
+    const newFunction = {
+        type: 'endPoint',
+        properties: {
+            'function': {},
+            'new Function()': {},
+            'new Function': {},
+            'Function()': {},
+            'class': {},
+            '() => {}': {},
+        }
+    };
+
+    const _Function = {
+        name: 'Function',
+        type: 'function',
+        properties: {
+            'length': {},
+            'name': {},
+            'prototype()': {},
+        },
+    };
+    const _FunctionPrototype = {
+        wrapper: _Function,
+        name: 'Function.prototype',
+        type: 'function_prototype',
+        properties: {
+            'length': {},
+            'name': {},
+            'arguments': {},
+            'caller': {},
+            'constructor()': {},
+            'apply()': {},
+            'bind()': {},
+            'call()': {},
+            'toString()': {},
+        },
+        children: {
+            newFunction
+        }
+    };
+
+    const newArray = {
+        type: 'endPoint',
+        properties: {
+            '[ ]': {},
+            'new Array()': {},
+            'new Array': {},
+            'Array()': {},
+        }
+    };
+
+    const _Array = {
+        name: 'Array',
+        type: 'function',
+        properties: {
+            'length': {},
+            'name': {},
+            'prototype': {},
+            'isArray()': {},
+            'from()': {},
+            'of()': {},
+        },
+    };
+    const _ArrayPrototype = {
+        wrapper: _Array,
+        name: 'Array.prototype',
+        type: 'object_prototype',
+        properties: {
+            'length': {},
+            'constructor()': {},
+            'concat()': {},
+            'copyWithin()': {},
+            'fill()': {},
+            'find()': {},
+            'findIndex()': {},
+            'lastIndexOf()': {},
+            'pop()': {},
+            'push()': {},
+            'reverse()': {},
+            'shift()': {},
+            'unshift()': {},
+            'slice()': {},
+            'sort()': {},
+            'splice()': {},
+            'includes()': {},
+            'indexOf()': {},
+            'join()': {},
+            'keys()': {},
+            'entries()': {},
+            'values()': {},
+            'forEach()': {},
+            'filter()': {},
+            'flat()': {},
+            'flatMap()': {},
+            'map()': {},
+            'every()': {},
+            'some()': {},
+            'reduce()': {},
+            'reduceRight()': {},
+            'toLocaleString()': {},
+            'toString()': {},
+        },
+        children: {
+            newArray
+        }
+    };
+
+    const _Math = {
+        name: 'Math',
+        type: 'object',
+        properties: {
+            'abs()': {},
+            'acos()': {},
+            'acosh()': {},
+            'asin()': {},
+            'asinh()': {},
+            'atan()': {},
+            'atanh()': {},
+            'atan2()': {},
+            'ceil()': {},
+            'cbrt()': {},
+            'expm1()': {},
+            'clz32()': {},
+            'cos()': {},
+            'cosh()': {},
+            'exp()': {},
+            'floor()': {},
+            'fround()': {},
+            'hypot()': {},
+            'imul()': {},
+            'log()': {},
+            'log1p()': {},
+            'log2()': {},
+            'log10()': {},
+            'max()': {},
+            'min()': {},
+            'pow()': {},
+            'random()': {},
+            'round()': {},
+            'sign()': {},
+            'sin()': {},
+            'sinh()': {},
+            'sqrt()': {},
+            'tan()': {},
+            'tanh()': {},
+            'trunc()': {},
+            'E': {},
+            'LN10': {},
+            'LN2': {},
+            'LOG10E': {},
+            'LOG2E': {},
+            'PI': {},
+            'SQRT1_2': {},
+            'SQRT2': {},
+        },
+    };
+
+    const _Object = {
+        name: 'Object',
+        type: 'function',
+        properties: {
+            'length': {},
+            'name': {},
+            'prototype': {},
+            'assign()': {},
+            'getOwnPropertyDescriptor()': {},
+            'getOwnPropertyDescriptors()': {},
+            'getOwnPropertyNames()': {},
+            'getOwnPropertySymbols()': {},
+            'is()': {},
+            'preventExtensions()': {},
+            'seal()': {},
+            'create()': {},
+            'defineProperties()': {},
+            'defineProperty()': {},
+            'freeze()': {},
+            'getPrototypeOf()': {},
+            'setPrototypeOf()': {},
+            'isExtensible()': {},
+            'isFrozen()': {},
+            'isSealed()': {},
+            'keys()': {},
+            'entries()': {},
+            'fromEntries()': {},
+            'values()': {},
+        },
+    };
+    const _ObjectPrototype = {
+        wrapper: _Object,
+        name: 'Object.prototype',
+        type: 'object_prototype',
+        properties: {
+            'constructor()': {},
+            '__defineGetter__()': {},
+            '__defineSetter__()': {},
+            'hasOwnProperty()': {},
+            '__lookupGetter__()': {},
+            '__lookupSetter__()': {},
+            'isPrototypeOf()': {},
+            'propertyIsEnumerable()': {},
+            'toString()': {},
+            'valueOf()': {},
+            '__proto__': {},
+            'toLocaleString()': {},
+        },
+        children: {
+            _Math,
+            _ArrayPrototype,
+            _FunctionPrototype,
+            _StringPrototype,
+            _BooleanPrototype,
+            _NumberPrototype,
+            _DatePrototype,
+            _RegExpPrototype,
+            _ErrorPrototype,
+            _SymbolPrototype,
+            _MapPrototype,
+            _SetPrototype,
+            _WeakMapPrototype,
+            _WeakSetPrototype,
+            _ArrayBufferPrototype,
+            newObject,
+            _DataViewPrototype,
+            _PromisePrototype,
+            _EventTargetPrototype,
+
+        }
+    };
+
+
+    function togglePropertiesByElement(element) {
+        const parent =  element.closest('.content');
+        if (parent === null) return;
+        const itemProp = parent.querySelectorAll('.item__properties');
+        if (itemProp.length) {
+            itemProp.forEach(val => val.classList.toggle('item__properties_hide'));
+        }
+    }
+
+    function toggleClass(e) {
+        if (e.target.classList.contains('item__title')) {
+            togglePropertiesByElement(e.target);
+        }
+        if (e.target.href) {
+            if (e.target.dataset && e.target.dataset.link) {
+                const target = document.querySelector('[href="' + e.target.dataset.link + '"]');
+                target.scrollIntoView({behavior: 'smooth', block: 'center', inline: 'center'});
+                setTimeout(() => togglePropertiesByElement(target), 1000);
+            } else {
+                e.target.scrollIntoView({behavior: 'smooth', block: 'center', inline: 'center'});
+            }
+        }
+    }
+    function toggleProperties() {
+        console.time('Toggle');
+        if (!this.state) this.state = 'hide';
+        const allProperties = document.querySelectorAll('.item__properties:not(.item__properties_show)');
+        if (this.state === 'hide') {
+            allProperties.forEach(element => element.classList.remove('item__properties_hide'));
+            this.innerHTML = 'Hide All Properties';
+            const {top, left, width, height} = document.querySelector('.row').getBoundingClientRect();
+        //debugger;
+            //document.querySelector('.row').style.top = '-' + top + 'px';
+            this.state = 'show';
+        } else {
+            allProperties.forEach(element => element.classList.add('item__properties_hide'));
+            this.innerHTML = 'Show All Properties';
+            //const {top, left, width, height} = document.querySelector('.row').getBoundingClientRect();
+            //debugger;
+            //document.querySelector('.row').style.top = '0px';
+            this.state = 'hide';
+        }
+        //document.querySelector('.row').style.top = '';
+        console.timeEnd('Toggle');
+    }
+    function createElementWithClass(elementName, className) {
+        const element = document.createElement(elementName);
+        if (className) {
+            element.className = className;
+        }
+        return element;
+    }
+
+    function renderItem(obj) {
+        // item
+        const item = createElementWithClass('div', 'item');
+        item.setAttribute('data-type', obj.type);
+
+        // item title
+        let titleHref = '';
+        if (obj.name) {
+            const itemTitle = createElementWithClass('a', 'item__title');
+            const titleName = obj.name
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;")
+                .replace(/ \/ /g, '<br>');
+            //const titleHref = '#' + titleName.replace(/\./, '_');
+            titleHref = '#' + obj.name.replace(/\./, '_');
+            itemTitle.href = titleHref;
+            itemTitle.title = /_/.test(obj.type) ? obj.type.substr(0, obj.type.indexOf('_')) : obj.type === 'endPoint' ? 'object' : obj.type;
+            itemTitle.innerHTML = titleName;
+            item.append(itemTitle);
+        }
+
+        // item properties
+        if (obj.properties) {
+            const itemProperties = obj.type === 'endPoint'
+                ? createElementWithClass('div', 'item__properties item__properties_show')
+                : createElementWithClass('div', 'item__properties item__properties_hide');
+            Object.keys(obj.properties).forEach(propName => {
+                const property = createElementWithClass('a');
+                property.href = obj.type === 'endPoint' ? '#' + propName : titleHref + '__' + propName;
+                property.innerHTML = propName;
+                if (obj.properties[propName].linkTo) {
+                    property.setAttribute('data-type', 'link');
+                    property.setAttribute('data-link', '#' + obj.properties[propName].linkTo);
+                }
+                itemProperties.append(property);
+            });
+            item.append(itemProperties);
+        }
+
+        return item;
+    }
+    function renderWrapper(obj) {
+        const wrapper = createElementWithClass('div', 'wrapper');
+        const content = createElementWithClass('div', 'content');
+        if (obj.wrapper) {
+            const firstItem = renderItem(obj.wrapper);
+            content.append(firstItem);
+        }
+
+        const item = renderItem(obj);
+        content.append(item);
+        wrapper.append(content);
+
+        if (obj.children) {
+            const row = createElementWithClass('div', 'row');
+            Object.keys(obj.children).forEach(childName => {
+                const wrapper = renderWrapper(obj.children[childName]);
+                row.append(wrapper);
+            });
+            wrapper.append(row);
+        }
+
+        return wrapper;
+    }
+    function render(obj) {
+        const row = createElementWithClass('div', 'row');
+        const wrapper = renderWrapper(obj);
+        row.append(wrapper);
+        return row;
+    }
+
+
+    function wheel(e) {
+        e.preventDefault();
+        wheel.process = true;
+        if (!wheel.scale) wheel.scale = 1;
+
+        if (e.wheelDelta > 0) wheel.scale += 0.05;
+        else wheel.scale -= 0.05;
+        if (wheel.scale < 0.09 || wheel.scale > 1) return;
+        const target = this.querySelector('.row');
+        target.style.position = 'absolute';
+        target.style.transform = target.style.WebkitTransform = target.style.MsTransform = 'scale(' + wheel.scale + ')';
+        //const {top, left} = {...this.getBoundingClientRect()};
+        //setTimeout(() => {
+            const {width, height} = target.getBoundingClientRect();
+        /*target.style.width = width + 'px';
+        target.style.height = height + 'px';
+        if (wheel.scale < 0.75) {
+            debugger;
+        }*/
+
+            const {top: boundingTop, left: boundingLeft} = target.getBoundingClientRect();
+console.log(boundingTop, boundingLeft);
+//console.log(window.pageXOffset, window.pageYOffset);
+//debugger;
+        //wheel();
+        const currentTop = target.style.top ? +target.style.top.match(/\d+/g)[0] : 0;
+        const currentLeft = target.style.left ? +target.style.left.match(/\d+/g)[0] : 0;
+
+        console.log(currentTop, currentLeft);
+        const additionalTop = wheel.scale < 0.5 ? -30 : 0;
+
+        const top = currentTop + boundingTop + additionalTop;
+        const left = width > window.innerWidth ? currentLeft + boundingLeft : currentLeft + boundingLeft - (window.innerWidth - width)/2 ;
+        console.log(top, left);
+
+        target.style.top = '-' + top + 'px';
+        target.style.left = '-' + left + 'px';
+        //target.style.top = '-' + boundingTop + 'px';
+        //target.style.left = '-' + boundingLeft + 'px';
+
+
+        //}, 500);
+
+        wheel.process = false;
+    }
+
+    function mousedown() {
+        this.addEventListener('wheel', wheel, { passive: false });
+    }
+    function mouseup() {
+        if (wheel.process) {
+            this.removeEventListener('wheel', wheel);
+        } else {
+            setTimeout(() => this.removeEventListener('wheel', wheel), 50);
+        }
+
+    }
+
+    document.querySelector('body').addEventListener('click', toggleClass);
+    document.querySelector('body').addEventListener('mousedown', mousedown);
+    document.querySelector('body').addEventListener('mouseup', mouseup);
+    document.querySelector('#toggleProperties').addEventListener('click', toggleProperties);
+    window.onload = function () {
+        const fragment = render(_ObjectPrototype);
+        document.body.append(fragment);
+    };
+
+    console.timeEnd('Script');
+</script>
+<script>console.timeEnd('All');</script>
+</body>
+</html>
